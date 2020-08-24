@@ -3,11 +3,30 @@ from flask import request
 import logging
 import json
 import TargetMovement as mv
-#disable flask logging,shaw only errors
+import threading
+import time
+#disable flask logging,show only errors
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
-
+timer = 0;
 app = Flask(__name__)
+WD_timeout = 0.5 #0.5 seconds
+is_message_received = False
+firstCommandReceived = False
+
+def checkTimeout():
+    global is_message_received
+    global motor_control
+    while not firstCommandReceived:
+        time.sleep(WD_timeout)
+    while True:
+        if not is_message_received:
+            motor_control.stop()
+        else:
+            is_message_received = False
+        time.sleep(WD_timeout)
+WD_thread = threading.Thread(target=checkTimeout)
+WD_thread.start()
 
 motor_control = mv.MotorControl()
 
@@ -17,6 +36,11 @@ motor_control.arm()
 
 @app.route("/",methods=['GET', 'POST'])
 def getCommands():
+    global firstCommandReceived
+    global is_message_received
+    if not firstCommandReceived:
+        firstCommandReceived = True;
+    is_message_received = True
     isCommandExists = False
     print(json.loads(request.data))
     if json.loads(request.data)['forward'] > 0:
