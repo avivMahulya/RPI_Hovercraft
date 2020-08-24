@@ -1,4 +1,4 @@
-from Host import Controller
+import Controller
 from btcom import *  # TigerJython
 from btpycom import *  # Standard-Python (PC, Raspi, ...)
 

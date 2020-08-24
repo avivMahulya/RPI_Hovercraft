@@ -1,4 +1,4 @@
-from Host import errorCodes
+import errorCodes
 
 
 class Controller:
